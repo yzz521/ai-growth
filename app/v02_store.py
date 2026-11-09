@@ -248,7 +248,20 @@ def list_runs(limit=50):
 
 def schedule_rule(rule_id,interval_hours=24):
     from datetime import datetime, timedelta, timezone
-    next_run=(datetime.now(timezone.utc)+timedelta(hours=max(1,int(interval_hours)))).isoformat()
+    rule=get_record("rules",rule_id)
+    if rule and rule.get("rule_type")=="daily_digest" and get_pref("daily_digest_enabled",False):
+        raw=get_pref("daily_digest_time","18:00")
+        try:
+            hour,minute=(int(part) for part in raw.split(":"))
+            local_now=datetime.now().astimezone()
+            next_local=local_now.replace(hour=hour,minute=minute,second=0,microsecond=0)
+            if next_local<=local_now:
+                next_local+=timedelta(days=1)
+            next_run=next_local.astimezone(timezone.utc).isoformat()
+        except (TypeError,ValueError):
+            next_run=(datetime.now(timezone.utc)+timedelta(hours=24)).isoformat()
+    else:
+        next_run=(datetime.now(timezone.utc)+timedelta(hours=max(1,int(interval_hours)))).isoformat()
     with db() as c:
         c.execute("UPDATE automation_rules SET last_run_at=last_run_at,next_run_at=?,updated_at=? WHERE id=?",(next_run,now(),rule_id))
     return next_run
