@@ -1,17 +1,39 @@
-# 本地桌面导入助手
+# 桌面助手
 
-这是用户主动采集工具，不是微信插件：不访问微信进程、内部数据库、账号令牌或私有协议。
+## 文件夹监控
 
-1. 启动主服务：`./run.sh` / `run.bat`。
-2. 另开终端运行：`python desktop_helper/watch_folder.py`。
-3. 把用户主动保存的 TXT、MD、CSV、JSON、可检索 PDF、DOCX 文件放入 `data/dropbox/`。
-4. 成功导入后移动至 `processed/`。
+启动工作台后运行：
 
-主动保存文本示例：
+~~~bash
+python desktop_helper/watch_folder.py
+~~~
 
-```bash
-python desktop_helper/capture_text.py "客户沟通记录" --text "客户希望下周收到报价方案。"
-pbpaste | python desktop_helper/capture_text.py "微信剪藏"
-```
+把你主动导出、选定且有权处理的文件放到 data/dropbox/。成功导入后移动到 processed/，服务端会按自动整理偏好处理。
 
-未来桌面壳可使用 Tauri/Electron 增加托盘和主动快捷键；剪贴板权限读取必须明确告知并由用户触发，不做后台静默监听。
+## 快捷键剪藏
+
+安装可选依赖：
+
+~~~bash
+pip install -r requirements-desktop.txt
+~~~
+
+然后启动：
+
+~~~bash
+python desktop_helper/start_assistant.py
+~~~
+
+默认快捷键 Ctrl + Shift + Space。macOS 可以尝试：
+
+~~~bash
+python desktop_helper/start_assistant.py --hotkey '<cmd>+<shift>+<space>'
+~~~
+
+操作：先复制微信中自己选择的文字，再按快捷键。程序只在热键触发时读取当前剪贴板，将文字提交到本地工作台；服务端按配置自动整理。
+
+macOS 如需系统输入监听权限，请在系统隐私与安全设置中给终端/Python 授予相应权限。
+
+## 安全边界
+
+桌面助手不读取微信内部数据库、不注入微信、不模拟登录，不会在后台持续监控剪贴板。只处理用户主动触发的文本和放入监控目录的文件。
