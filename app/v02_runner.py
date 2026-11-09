@@ -17,6 +17,8 @@ async def scheduler_loop():
             for rule in store.list_records("rules",200):
                 if not rule["enabled"]:
                     continue
+                if rule.get("rule_type")=="daily_digest" and not store.get_pref("daily_digest_enabled",False):
+                    continue
                 next_at=rule.get("next_run_at")
                 if not next_at:
                     interval=int((rule.get("config") or {}).get("interval_hours",24))
