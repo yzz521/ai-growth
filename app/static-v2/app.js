@@ -133,6 +133,8 @@ async function submit(e){
 function formObject(f){let d={};for(let e of f.elements){if(!e.name||["submit","button"].includes(e.type))continue;if(e.type==="checkbox"){d[e.name]=e.checked;continue}if(["products","differentiators","proof_points","prohibited","pain_points","goals","objections","decision_factors","pillars"].includes(e.name)){d[e.name]=parseLines(e.value);continue}if(["config","ratios"].includes(e.name)){try{d[e.name]=JSON.parse(e.value||"{}")}catch{throw Error("JSON 格式不正确")};continue}if(e.name==="weekly_frequency")d[e.name]=Number(e.value||5);else d[e.name]=e.value===""?null:e.value}return d}
 function parseLines(s){return String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
 async function change(e){
+ let ruleType=e.target.closest('#rule select[name="rule_type"]');
+ if(ruleType){let interval=$('#rule input[name="interval_hours"]');if(interval)interval.value=ruleType.value==="weekly_content_plan"?"168":"24";return}
  let lead=e.target.closest("[data-lead]");if(lead){try{await api("/api/leads/"+lead.dataset.lead,post({status:lead.value,notes:null},"PATCH"));toast("线索状态已更新")}catch(x){toast(x.message,true)}return}
  let rule=e.target.closest("[data-rule-toggle]");if(rule){try{let a=await api("/api/v2/automation/rules"),old=a.find(x=>x.id===rule.dataset.ruleToggle);await api("/api/v2/automation/rules/"+old.id,post({...old,enabled:rule.checked,config:old.config||{}},"PUT"));toast("规则已更新");automation()}catch(x){toast(x.message,true)}}
 }
