@@ -8,7 +8,7 @@ const post=(data,method="POST")=>({method,headers:{"Content-Type":"application/j
 async function api(url,opt={}){const r=await fetch(url,opt);let d;try{d=await r.json()}catch{}if(!r.ok)throw Error(d?.detail||"请求失败 "+r.status);return d}
 function toast(t,error=false){const e=document.createElement("div");e.className="toast"+(error?" error":"");e.textContent=t;$("#toast-root").append(e);setTimeout(()=>e.remove(),3500)}
 function date(v){return v?new Date(v).toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}):"—"}
-function pill(s){return `<span class="status ${["SAVED","APPROVED","PUBLISHED","COMPLETED","WON","QUALIFIED"].includes(s)?"green":["PENDING","ORGANIZED","CANDIDATE","DRAFT","NEW","RUNNING"].includes(s)?"orange":"red"`">${esc(sn[s]||s||"未知")}</span>`}
+function pill(s){const cls=["SAVED","APPROVED","PUBLISHED","COMPLETED","WON","QUALIFIED"].includes(s)?"green":["PENDING","ORGANIZED","CANDIDATE","DRAFT","NEW","RUNNING"].includes(s)?"orange":"red";return `<span class="status ${cls}">${esc(sn[s]||s||"未知")}</span>`}
 function empty(s){return `<div class="empty">${esc(s)}</div>`}
 function hero(k,t,d,a=""){return `<div class="hero"><div><div class="eyebrow">${esc(k)}</div><h1>${esc(t)}</h1><p>${esc(d)}</p></div>${a}</div>`}
 function panel(t,s="",right=""){return `<div class="panel-head"><div><h2>${esc(t)}</h2>${s?`<p>${esc(s)}</p>`:""}</div>${right}</div>`}
