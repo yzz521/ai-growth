@@ -1,0 +1,16 @@
+AI Growth Workspace MVP 0.1.0
+Build date: 2026-11-09
+
+Verification performed in the build environment:
+- Python compileall: passed
+- pytest: 5 passed
+- Node syntax check for app/static/app.js: passed
+- Uvicorn localhost smoke test: passed
+  - GET /api/health
+  - GET /
+  - GET /static/app.js
+  - GET /api/settings
+
+Runtime dependencies are listed in requirements.txt.
+This project is a local, single-user MVP. Do not expose it to the public Internet.
+The MVP does not read WeChat internals and does not publish automatically to social platforms.
