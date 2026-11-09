@@ -1,16 +1,19 @@
-AI Growth Workspace MVP 0.1.0
+AI Growth Workspace V0.2.0
 Build date: 2026-11-09
+Branch: feat/v0.2-workspace-rework
 
-Verification performed in the build environment:
+Verified by GitHub Actions:
 - Python compileall: passed
-- pytest: 5 passed
-- Node syntax check for app/static/app.js: passed
-- Uvicorn localhost smoke test: passed
-  - GET /api/health
-  - GET /
-  - GET /static/app.js
-  - GET /api/settings
+- pytest: 9 passed, 1 upstream Starlette/httpx deprecation warning
+- Node syntax check for app/static-v2/app.js: passed
+- Latest verification run: https://github.com/yzz521/ai-growth/actions/runs/42584913052
 
-Runtime dependencies are listed in requirements.txt.
-This project is a local, single-user MVP. Do not expose it to the public Internet.
-The MVP does not read WeChat internals and does not publish automatically to social platforms.
+V0.2 scope:
+- Reworked AI workspace UI (home, inbox, knowledge, content factory, growth, automation, settings)
+- Editable brand profiles, audience personas, content strategies, platform rules and prompt templates
+- Background inbox organization and reviewable knowledge candidates
+- Content generation snapshots, planning and automation history
+- Local folder watcher and user-triggered clipboard hotkey helper
+
+This remains a local, single-user application. Do not expose it to the public Internet.
+The application does not read WeChat internals and does not automatically publish to third-party platforms.

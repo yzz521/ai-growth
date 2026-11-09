@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f6f4">
+  <title>AI Growth Workspace</title>
+  <link rel="stylesheet" href="/static/styles.css?v=0.2.3">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" data-page="home">
+        <span class="brand-mark">ag</span>
+        <span><b>Growth Workspace</b><small>AI 工作台</small></span>
+      </a>
+      <div class="workspace-switch"><span class="avatar">Y</span><span><b>个人工作区</b><small>本地空间 · 私有数据</small></span><span class="chevron">⌄</span></div>
+      <div class="nav-label">WORKSPACE</div>
+      <nav class="main-nav">
+        <button class="nav-item active" data-page="home"><span class="nav-icon">⌂</span> AI 首页</button>
+        <button class="nav-item" data-page="inbox"><span class="nav-icon">↳</span> 信息流 <span id="inbox-badge" class="nav-count"></span></button>
+        <button class="nav-item" data-page="knowledge"><span class="nav-icon">▤</span> 知识库 <span id="knowledge-badge" class="nav-count"></span></button>
+        <button class="nav-item" data-page="content"><span class="nav-icon">✎</span> 内容工厂</button>
+        <button class="nav-item" data-page="growth"><span class="nav-icon">↗</span> 增长分析</button>
+        <button class="nav-item" data-page="automation"><span class="nav-icon">◷</span> 自动化任务</button>
+      </nav>
+      <div class="nav-label nav-label-bottom">CONFIGURATION</div>
+      <nav class="main-nav">
+        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span> 配置中心</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="local-indicator"><i></i><span>本地工作区运行中</span></div>
+        <small>AI Growth Workspace · 0.2.0</small>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>Growth Workspace</span><b>/</b><strong id="page-name">AI 首页</strong></div>
+        <div class="top-actions">
+          <span id="model-state" class="model-pill"><i></i> 检查模型中</span>
+          <button class="icon-button" id="refresh" title="刷新">↻</button>
+          <span class="user-avatar">Y</span>
+        </div>
+      </header>
+      <div id="view" class="view"><div class="loading">正在打开工作区…</div></div>
+      <footer class="app-footer"><span>你的信息，只为你的工作服务。</span><span><a href="/docs" target="_blank" rel="noopener">API 文档</a> · 本地模式</span></footer>
+    </main>
+  </div>
+  <div id="toast-root" aria-live="polite"></div>
+  <dialog id="modal" class="modal"><form method="dialog"><button class="modal-close" aria-label="关闭">×</button></form><div id="modal-body"></div></dialog>
+  <script src="/static/app.js?v=0.2.3" defer></script>
+</body>
+</html>

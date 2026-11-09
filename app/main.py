@@ -1,12 +1,16 @@
-import logging, uuid
+import asyncio, logging, uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from . import ai, services
 from .config import UPLOADS, MAX_UPLOAD, ensure_dirs
 from .db import init_db
+from . import v02_store
+from .v02_api import router as v02_router
+from .v02_runner import scheduler_loop
+from .v02_extra import ensure_v02_extra_schema
 from .ingest import extract
 from .schemas import InboxText, KnowledgeCreate, KnowledgeUpdate, Ask, Generate, ContentUpdate, PublishRecord, LeadCreate, LeadUpdate
 logging.basicConfig(level=logging.INFO)
@@ -15,10 +19,20 @@ log=logging.getLogger('agw')
 async def lifespan(app):
     ensure_dirs()
     init_db()
-    yield
-app=FastAPI(title='AI Growth Workspace',version='0.1.0',description='本地单用户 MVP；默认不自动发布第三方平台内容。',lifespan=lifespan)
+    v02_store.ensure_v02_schema()
+    ensure_v02_extra_schema()
+    runner=asyncio.create_task(scheduler_loop())
+    try:
+        yield
+    finally:
+        runner.cancel()
+        try: await runner
+        except asyncio.CancelledError: pass
+app=FastAPI(title='AI Growth Workspace',version='0.2.0',description='本地个人 AI 工作台；品牌配置、内容策略、自动整理和自动化任务已启用。第三方平台发布仍需官方授权。',lifespan=lifespan)
+app.include_router(v02_router)
+
 @app.get('/api/health')
-def health(): return {'status':'ok','version':'0.1.0'}
+def health(): return {'status':'ok','version':'0.2.0'}
 @app.get('/api/settings')
 def settings():
  from .config import AI_MODEL
@@ -27,10 +41,27 @@ def settings():
 def dashboard(): return services.dashboard()
 @app.get('/api/inbox')
 def inbox_list(status:str|None=None,limit:int=100): return services.inbox_list(status,max(1,min(limit,200)))
+def _process_inbox_background(item_id):
+    job_id=v02_store.create_job('inbox_auto_process','自动整理资料')
+    try:
+        v02_store.update_job(job_id,'RUNNING',20)
+        services.organize(item_id)
+        result={'organized':True,'knowledge_candidate':False}
+        if v02_store.get_pref('auto_promote_knowledge',True):
+            services.inbox_to_candidate(item_id)
+            result['knowledge_candidate']=True
+        v02_store.update_job(job_id,'COMPLETED',100,result)
+    except Exception as exc:
+        v02_store.update_job(job_id,'FAILED',100,error=str(exc)[:500])
+
 @app.post('/api/inbox/text',status_code=201)
-def inbox_text(p:InboxText): return services.create_inbox(p.title,p.text,p.source_type,p.source_name)
+def inbox_text(p:InboxText, background_tasks: BackgroundTasks):
+    item=services.create_inbox(p.title,p.text,p.source_type,p.source_name)
+    if v02_store.get_pref('auto_organize',True):
+        background_tasks.add_task(_process_inbox_background,item['id'])
+    return item
 @app.post('/api/inbox/upload',status_code=201)
-async def inbox_upload(file:UploadFile=File(...),source_type:str=Form('file'),title:str|None=Form(None)):
+async def inbox_upload(background_tasks:BackgroundTasks,file:UploadFile=File(...),source_type:str=Form('file'),title:str|None=Form(None)):
  filename=Path(file.filename or 'upload.txt').name[:240]
  if not Path(filename).suffix: raise HTTPException(400,'上传文件必须有扩展名')
  payload=await file.read(MAX_UPLOAD+1)
@@ -38,7 +69,11 @@ async def inbox_upload(file:UploadFile=File(...),source_type:str=Form('file'),ti
  try: text=extract(filename,payload)
  except ValueError as e: raise HTTPException(400,str(e))
  stored=uuid.uuid4().hex+Path(filename).suffix.lower(); path=UPLOADS/stored; path.write_bytes(payload)
- try: return services.create_inbox(title or Path(filename).stem, text, source_type, filename, filename, stored)
+ try:
+  item=services.create_inbox(title or Path(filename).stem, text, source_type, filename, filename, stored)
+  if v02_store.get_pref('auto_organize',True):
+   background_tasks.add_task(_process_inbox_background,item['id'])
+  return item
  except Exception: path.unlink(missing_ok=True); raise
 @app.get('/api/inbox/{i}')
 def inbox_get(i):
@@ -104,7 +139,9 @@ def leads_create(p:LeadCreate):
 def leads_update(i,p:LeadUpdate):
  try: return services.lead_update(i,p.status,p.notes)
  except KeyError as e: raise HTTPException(404,str(e))
-STATIC=Path(__file__).resolve().parent/'static'
+STATIC_OLD=Path(__file__).resolve().parent/'static'
+STATIC_V2=Path(__file__).resolve().parent/'static-v2'
+STATIC=STATIC_V2 if (STATIC_V2/'index.html').exists() else STATIC_OLD
 app.mount('/static',StaticFiles(directory=STATIC),name='static')
 @app.get('/',include_in_schema=False)
 def home(): return FileResponse(STATIC/'index.html')
