@@ -193,7 +193,11 @@ def save_record(kind, payload, record_id=None):
     cols=[]
     vals=[]
     for field,value in row_data.items():
-        col=field+"_json" if field in JSON_FIELDS else field
+        if field in JSON_FIELDS:
+            col=field+"_json"
+            value=dump(value)
+        else:
+            col=field
         if field in BOOL_FIELDS:
             value=int(bool(value))
         cols.append(col); vals.append(value)
