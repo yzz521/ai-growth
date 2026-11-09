@@ -97,6 +97,11 @@ def update_preferences(p:Payload):
             try: datetime.strptime(value,"%H:%M")
             except Exception: raise HTTPException(400,"时间格式应为 HH:MM")
         store.set_pref(key,value)
+    if {"daily_digest_enabled","daily_digest_time"} & set(p.data):
+        for rule in store.list_records("rules",200):
+            if rule.get("enabled") and rule.get("rule_type")=="daily_digest":
+                interval=(rule.get("config") or {}).get("interval_hours",24)
+                store.schedule_rule(rule["id"],interval)
     return preferences()
 
 @router.post("/settings/test-model")
